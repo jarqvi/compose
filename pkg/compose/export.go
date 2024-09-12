@@ -70,6 +70,8 @@ func (s *composeService) export(ctx context.Context, projectName string, options
 		return err
 	}
 
+	defer responseBody.Close()
+
 	if s.dryRun {
 		msg = fmt.Sprintf("would %s", msg)
 
@@ -82,8 +84,6 @@ func (s *composeService) export(ctx context.Context, projectName string, options
 
 		return nil
 	}
-
-	defer responseBody.Close()
 
 	if options.Output == "" {
 		_, err := io.Copy(s.dockerCli.Out(), responseBody)
