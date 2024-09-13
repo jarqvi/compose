@@ -64,11 +64,11 @@ func runExport(ctx context.Context, dockerCli command.Cli, backend api.Service, 
 		return err
 	}
 
-	attachOpts := api.ExportOptions{
+	exportOptions := api.ExportOptions{
 		Service: options.service,
 		Index:   options.index,
 		Output:  options.output,
 	}
 
-	return backend.Export(ctx, projectName, attachOpts)
+	return backend.Export(ctx, projectName, exportOptions)
 }
