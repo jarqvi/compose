@@ -42,8 +42,6 @@ func (s *composeService) export(ctx context.Context, projectName string, options
 		return err
 	}
 
-	name := getCanonicalContainerName(container)
-
 	if options.Output == "" && s.dockerCli.Out().IsTerminal() {
 		return errors.New("output option is required when exporting to terminal")
 	}
@@ -56,6 +54,7 @@ func (s *composeService) export(ctx context.Context, projectName string, options
 
 	w := progress.ContextWriter(ctx)
 
+	name := getCanonicalContainerName(container)
 	msg := fmt.Sprintf("export %s to %s", name, options.Output)
 
 	w.Event(progress.Event{
@@ -72,26 +71,15 @@ func (s *composeService) export(ctx context.Context, projectName string, options
 
 	defer responseBody.Close()
 
-	if s.dryRun {
-		msg = fmt.Sprintf("would %s", msg)
-
-		w.Event(progress.Event{
-			ID:         name,
-			Text:       msg,
-			Status:     progress.Done,
-			StatusText: "Exported",
-		})
-
-		return nil
-	}
-
-	if options.Output == "" {
-		_, err := io.Copy(s.dockerCli.Out(), responseBody)
-		return err
-	}
-
-	if err = command.CopyToFile(options.Output, responseBody); err != nil {
-		return err
+	if !s.dryRun {
+		if options.Output == "" {
+			_, err := io.Copy(s.dockerCli.Out(), responseBody)
+			return err
+		}
+	
+		if err = command.CopyToFile(options.Output, responseBody); err != nil {
+			return err
+		}
 	}
 
 	w.Event(progress.Event{
